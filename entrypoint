@@ -1,0 +1,27 @@
+#!/bin/bash
+shopt -s extglob
+set -o errtrace
+set -o errexit
+
+# cd /opt is implied by Dockerfile's entrypoint
+
+DEFAULT_DOCKER_SOCK="unix:///docker.sock"
+export DOCKER_HOST=${DOCKER_HOST:-$DEFAULT_DOCKER_SOCK}
+
+if [ -z "${DOCKER_HOST}" ];
+then
+	echo "You must set DOCKER_HOST or map your Docker socket to /docker.sock (i.e. -v /var/run/docker.sock:/docker.sock)"
+	exit 2
+fi
+
+if [ -n "${INSTALL_URL:-}" ];
+then
+	curl -H "Cache-control: no-cache" -s ${INSTALL_URL} | bash
+fi
+
+case $1 in
+	start)
+		java -jar jenkins.war;;
+	*)
+		$@;;
+esac
